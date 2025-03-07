@@ -3,10 +3,20 @@ import json
 import hashlib
 import logging
 import pathlib
-from fastapi import FastAPI, Form, HTTPException, UploadFile, File, Path
+import sqlite3
+from fastapi import FastAPI, Form, HTTPException, UploadFile, File, Path, Query
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+## Step 5.1 Write into a database
+DB_FILE = "/Users/catherine/Desktop/mercari-build-training/db/mercari.sqlite3"
+
+# Connection with db
+def get_db():
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 # Set JSON file name & image location
 DATA_FILE = "items.json"
@@ -43,12 +53,41 @@ class Item(BaseModel):
     category: str
     image_name: str = None 
 
-## 2. List a new item
-def insert_item(item: Item, image: UploadFile = None):
-    data = load_data()
-    image_name = None
+## Step 5.1 Write into a database
+def insert_item(item: Item, image_name: str = None):
+    conn = get_db()
+    cursor = conn.cursor()
 
-    # Hash the image using SHA-256, and save it with the name `<hashed-value>.jpg`
+    ## Step 5.8 Move the category information to a separate table
+    # Find out the catergory
+    cursor.execute("SELECT id FROM categories WHERE name = ?", (item.category,))
+    category = cursor.fetchone()
+
+    # If there is no category, insert an item category
+    if category is None:
+        cursor.execute("INSERT INTO categories (name) VALUES (?)", (item.category,))
+        category_id = cursor.lastrowid
+    else:
+        category_id = category["id"]
+
+    # Insert item（using category_id）
+    cursor.execute(
+        "INSERT INTO items (name, category_id, image_name) VALUES (?, ?, ?)",
+        (item.name, category_id, image_name),
+    )
+
+    conn.commit()
+    conn.close()
+
+## Step 4.4 Add Item Images
+@app.post("/items")
+def add_item(
+    name: str = Form(...),
+    category: str = Form(...),
+    image: UploadFile = File(None),
+):
+    ## Step 5.1  Write into a database
+    image_name = None
     if image:
         image_bytes = image.file.read()
         image_hash = hashlib.sha256(image_bytes).hexdigest()
@@ -56,36 +95,29 @@ def insert_item(item: Item, image: UploadFile = None):
         with open(f"{IMAGE_DIR}/{image_name}", "wb") as f:
             f.write(image_bytes)
 
-    # Create new item, add image_name
-    new_item = {"name": item.name, "category": item.category, "image_name": image_name}
-    data["items"].append(new_item) 
-    save_data(data) 
-
-## 4. Add Item Images
-@app.post("/items")
-def add_item(
-    name: str = Form(...),
-    category: str = Form(...),
-    image: UploadFile = File(None),
-):
-    insert_item(Item(name=name, category=category), image) 
+    insert_item(Item(name=name, category=category), image_name) 
     return {"message": f"Item received: {name}"}
 
-## 3. Get the List of Items
+## Step 5.1  Write into a database
 @app.get("/items")
 def get_items():
-    return load_data() 
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM items")
+    items = cursor.fetchall()
+    conn.close()
+    return {"items": [dict(item) for item in items]}
 
-## 5. Return Item Details
+## Step 4.5 Return Item Details
 @app.get("/items/{item_id}")
 def get_item(item_id: int = Path(..., description="The ID of the item to retrieve")):
     data = load_data()
     if 0 <= item_id < len(data["items"]):
-        return data["items"][item_id]
+        return data["items"][item_id2]
     else:
         raise HTTPException(status_code=404, detail="Item not found")
 
-# 6. (Optional) Understand Loggers -- Configure logging to show debug messages
+# Step 4.6 (Optional) Understand Loggers -- Configure logging to show debug messages
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
@@ -103,3 +135,23 @@ async def get_image(image_name: str):
 @app.get("/")
 def read_root():
     return {"message": "Hello, world!"}
+
+## Step 5.2 Search for an item
+@app.get("/search")
+def search_items(keyword: str = Query(..., description="Keyword to search for items")):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute(
+    """
+    SELECT items.id, items.name, categories.name AS category, items.image_name 
+    FROM items 
+    JOIN categories ON items.category_id = categories.id
+    WHERE items.name LIKE ? OR categories.name LIKE ?
+    """, 
+    (f"%{keyword}%", f"%{keyword}%")
+    )
+    items = cursor.fetchall()
+    conn.close()
+    
+    return {"items": [dict(item) for item in items]}
