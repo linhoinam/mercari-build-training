@@ -11,7 +11,6 @@ from pydantic import BaseModel
 images = pathlib.Path(__file__).parent.resolve() / "images"
 db = pathlib.Path(__file__).parent.resolve() / "db" / "mercari.sqlite3"
 
-# ✅ 讓 FastAPI 可以切換資料庫 (測試環境會用 `override_get_db`)
 def get_db():
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
@@ -31,17 +30,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 定義 Item 結構
 class Item(BaseModel):
     name: str
     category: str
     image_name: str = None 
 
-# ✅ 改善 `insert_item()`，確保 category 正確存入 categories 表
 def insert_item(item: Item, image_name: str = None, db: sqlite3.Connection = None):
     cursor = db.cursor()
 
-    # 查找 category 是否已存在
     cursor.execute("SELECT id FROM categories WHERE name = ?", (item.category,))
     category = cursor.fetchone()
 
@@ -51,7 +47,6 @@ def insert_item(item: Item, image_name: str = None, db: sqlite3.Connection = Non
     else:
         category_id = category["id"]
 
-    # 插入 item（使用 category_id）
     cursor.execute(
         "INSERT INTO items (name, category_id, image_name) VALUES (?, ?, ?)",
         (item.name, category_id, image_name),
@@ -59,13 +54,12 @@ def insert_item(item: Item, image_name: str = None, db: sqlite3.Connection = Non
 
     db.commit()
 
-# ✅ 改善 `POST /items/`
 @app.post("/items")
 def add_item(
     name: str = Form(...),
     category: str = Form(...),
     image: UploadFile = File(None),
-    db: sqlite3.Connection = Depends(get_db),  # 🔥 讓 FastAPI 自動帶入 DB 連線
+    db: sqlite3.Connection = Depends(get_db),  
 ):
     if not name.strip():
         raise HTTPException(status_code=400, detail="Name cannot be empty")
@@ -81,7 +75,6 @@ def add_item(
     insert_item(Item(name=name, category=category), image_name, db)
     return {"message": f"Item received: {name}"}
 
-# ✅ `GET /items/`
 @app.get("/items")
 def get_items(db: sqlite3.Connection = Depends(get_db)):
     cursor = db.cursor()
@@ -95,7 +88,6 @@ def get_items(db: sqlite3.Connection = Depends(get_db)):
     items = cursor.fetchall()
     return {"items": [dict(item) for item in items]}
 
-# ✅ `GET /items/{item_id}`
 @app.get("/items/{item_id}")
 def get_item(item_id: int = Path(..., description="The ID of the item to retrieve"), db: sqlite3.Connection = Depends(get_db)):
     cursor = db.cursor()
@@ -115,7 +107,6 @@ def get_item(item_id: int = Path(..., description="The ID of the item to retriev
 
     return dict(item)
 
-# ✅ `/search`
 @app.get("/search")
 def search_items(keyword: str = Query(..., description="Keyword to search for items"), db: sqlite3.Connection = Depends(get_db)):
     cursor = db.cursor()
@@ -131,7 +122,6 @@ def search_items(keyword: str = Query(..., description="Keyword to search for it
     items = cursor.fetchall()
     return {"items": [dict(item) for item in items]}
 
-# ✅ `/image/{image_name}`
 @app.get("/image/{image_name}")
 async def get_image(image_name: str):
     image_path = IMAGE_DIR / image_name
