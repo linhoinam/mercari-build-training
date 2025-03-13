@@ -10,9 +10,11 @@ from pydantic import BaseModel
 
 images = pathlib.Path(__file__).parent.resolve() / "images"
 db = pathlib.Path(__file__).parent.resolve() / "db" / "mercari.sqlite3"
+IMAGE_DIR = pathlib.Path("images")
+IMAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 def get_db():
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(db)
     conn.row_factory = sqlite3.Row
     try:
         yield conn
