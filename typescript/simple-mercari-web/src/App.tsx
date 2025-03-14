@@ -1,11 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 import { ItemList } from '~/components/ItemList';
 import { Listing } from '~/components/Listing';
 
 function App() {
-  // reload ItemList after Listing complete
   const [reload, setReload] = useState(true);
+
+  useEffect(() => {
+    setReload(true);
+  }, []);
+
   return (
     <div>
       <header className="Title">
@@ -14,10 +18,10 @@ function App() {
         </p>
       </header>
       <div>
-        <Listing onListingCompleted={() => setReload(true)} />
+        <Listing setReload={setReload} />
       </div>
       <div>
-        <ItemList reload={reload} onLoadCompleted={() => setReload(false)} />
+        <ItemList reload={reload} setReload={setReload} />
       </div>
     </div>
   );

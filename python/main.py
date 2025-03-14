@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 images = pathlib.Path(__file__).parent.resolve() / "images"
-db = pathlib.Path(__file__).parent.resolve() / "db" / "mercari.sqlite3"
+db = str(pathlib.Path(__file__).parent.resolve() / "db" / "mercari.sqlite3")
 IMAGE_DIR = pathlib.Path("images")
 IMAGE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -136,3 +136,17 @@ async def get_image(image_name: str):
 @app.get("/")
 def read_root():
     return {"message": "Hello, world!"}
+
+@app.delete("/items/{item_id}")
+def delete_item(item_id: int, db: sqlite3.Connection = Depends(get_db)):
+    cursor = db.cursor()
+    
+    cursor.execute("SELECT * FROM items WHERE id = ?", (item_id,))
+    item = cursor.fetchone()
+    if item is None:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    cursor.execute("DELETE FROM items WHERE id = ?", (item_id,))
+    db.commit()
+    
+    return {"message": f"Item {item_id} deleted successfully"}
