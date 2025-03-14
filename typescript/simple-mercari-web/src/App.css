@@ -4,6 +4,21 @@ body {
   font-family: 'Noto Sans JP', sans-serif;
 }
 
+.form-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.form-container input,
+.form-container select,
+.form-container button {
+  font-size: 0.9rem;
+  padding: 5px;
+}
+
 .Title {
   background-color: #9D3C2F;
   color: white;
@@ -16,25 +31,29 @@ body {
 .ItemList {
   background-color: #C4B7A6;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-  gap: 20px; 
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 10px; /
   justify-content: center;
-  padding: 20px;
+  padding: 5px;
 }
 
 .item-card {
   background-color: #f0ebe0;
-  padding: 15px;
-  border-radius: 8px;
+  padding: 10px; 
+  width: 100px; 
+  border-radius: 6px;
   text-align: center;
-  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .item-card img {
-  width: 100%; 
-  height: auto; 
-  max-height: 200px; 
-  object-fit: cover; 
+  width: 80%; 
+  max-height: 80px; 
+  object-fit: cover;
+  border-radius: 5px;
 }
 
 .Item {
@@ -48,15 +67,15 @@ body {
 }
 
 .Item img {
-  width: 100%;
+  width: 90%;
   height: auto;
-  max-width: 250px;
-  border-radius: 8px;
+  max-width: 120px;
+  border-radius: 5px;
 }
 
 .Item p {
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 0.7rem;
   color: #5A4636;
 }
 
