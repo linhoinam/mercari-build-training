@@ -1,49 +1,76 @@
-.App {
-  text-align: center;
+body {
+  background-color: #beb3a2;
+  color: #9c796b;
+  font-family: 'Noto Sans JP', sans-serif;
 }
 
 .Title {
-  background-color: #222427;
-  min-height: 8vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: left;
-  font-size: calc(10px + 1vmin);
+  background-color: #9D3C2F;
   color: white;
-}
-
-.Listing {
-  background-color: #222427;
-  min-height: 8vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: left;
-  font-size: calc(10px + 1vmin);
-  color: white;
+  padding: 15px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
 }
 
 .ItemList {
-  background-color: #222427;
-  min-height: 8vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: left;
-  font-size: calc(10px + 1vmin);
+  background-color: #C4B7A6;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+  gap: 20px; 
+  justify-content: center;
+  padding: 20px;
+}
+
+.item-card {
+  background-color: #f0ebe0;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.item-card img {
+  width: 100%; 
+  height: auto; 
+  max-height: 200px; 
+  object-fit: cover; 
+}
+
+.Item {
+  background: white;
+  border-radius: 5px;
+  padding: 15px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  color: #7D6256;
+  border: 1px solid #D8C4B6;
+}
+
+.Item img {
+  width: 100%;
+  height: auto;
+  max-width: 250px;
+  border-radius: 8px;
+}
+
+.Item p {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #5A4636;
+}
+
+button {
+  background-color: #7D6256;
   color: white;
+  border: none;
+  padding: 8px 12px;
+  margin-top: 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 1rem;
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+button:hover {
+  background-color: #9D3C2F;
 }
