@@ -9,23 +9,27 @@ interface Prop {
 export const ItemList = ({ reload, setReload }: Prop) => {
   const [items, setItems] = useState<Item[]>([]);
 
+  const handleAddItem = (newItem: Item) => {
+    setItems((prevItems) => [newItem, ...prevItems]);
+  };
+
   useEffect(() => {
+    if (!reload) return;
+    
     const fetchData = async () => {
       try {
         const data = await fetchItems();
-        console.debug('GET success:', data);
-        setItems(data.items);
+        console.debug("GET success:", data);
+        setItems(data.items || []);
       } catch (error) {
-        console.error('GET error:', error);
+        console.error("GET error:", error.message || error);
       } finally {
         setReload(false);
       }
     };
-
-    if (reload) {
-      fetchData();
-    }
-  }, [reload, setReload]);
+    
+    fetchData();
+  }, [reload]);
 
   return (
     <div className="ItemList">

@@ -11,6 +11,7 @@ type FormDataType = {
   image: string | File;
 };
 
+
 export const Listing = ({ setReload }: Prop) => {
   const initialState: FormDataType = {
     name: '',
@@ -68,12 +69,12 @@ export const Listing = ({ setReload }: Prop) => {
   return (
     <div className="Listing">
       <form onSubmit={onSubmit}>
-        <div>
+        <div className="form-container">
           <input
             type="text"
             name="name"
             id="name"
-            placeholder="name"
+            placeholder="Name"
             onChange={onValueChange}
             required
             value={values.name}
@@ -82,7 +83,7 @@ export const Listing = ({ setReload }: Prop) => {
             type="text"
             name="category"
             id="category"
-            placeholder="category"
+            placeholder="Category"
             onChange={onValueChange}
             value={values.category}
           />
@@ -94,7 +95,7 @@ export const Listing = ({ setReload }: Prop) => {
             required
             ref={uploadImageRef}
           />
-          <button type="submit">List this item</button>
+          <button type="submit">Add this item</button>
         </div>
       </form>
     </div>
