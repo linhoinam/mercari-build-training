@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { postItem } from '~/api';
 
 interface Prop {
-  onListingCompleted: () => void;
+  setReload: (value: boolean) => void; 
 }
 
 type FormDataType = {
@@ -11,72 +11,70 @@ type FormDataType = {
   image: string | File;
 };
 
-export const Listing = ({ onListingCompleted }: Prop) => {
-  const initialState = {
+
+export const Listing = ({ setReload }: Prop) => {
+  const initialState: FormDataType = {
     name: '',
     category: '',
     image: '',
   };
-  const [values, setValues] = useState<FormDataType>(initialState);
 
+  const [values, setValues] = useState<FormDataType>(initialState);
   const uploadImageRef = useRef<HTMLInputElement>(null);
 
   const onValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValues({
-      ...values,
+    setValues((prev) => ({
+      ...prev,
       [event.target.name]: event.target.value,
-    });
+    }));
   };
+
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValues({
-      ...values,
-      [event.target.name]: event.target.files![0],
-    });
+    setValues((prev) => ({
+      ...prev,
+      [event.target.name]: event.target.files ? event.target.files[0] : '',
+    }));
   };
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // Validate field before submit
-    const REQUIRED_FILEDS = ['name', 'image'];
-    const missingFields = Object.entries(values)
-      .filter(([, value]) => !value && REQUIRED_FILEDS.includes(value))
-      .map(([key]) => key);
+    const REQUIRED_FIELDS = ['name', 'image'];
+    const missingFields = REQUIRED_FIELDS.filter((field) => !values[field as keyof FormDataType]);
 
-    if (missingFields.length) {
+    if (missingFields.length > 0) {
       alert(`Missing fields: ${missingFields.join(', ')}`);
       return;
     }
 
-    // Submit the form
-    postItem({
-      name: values.name,
-      category: values.category,
-      image: values.image,
-    })
-      .then(() => {
-        alert('Item listed successfully');
-      })
-      .catch((error) => {
-        console.error('POST error:', error);
-        alert('Failed to list this item');
-      })
-      .finally(() => {
-        onListingCompleted();
-        setValues(initialState);
-        if (uploadImageRef.current) {
-          uploadImageRef.current.value = '';
-        }
+    try {
+      await postItem({
+        name: values.name,
+        category: values.category,
+        image: values.image,
       });
+      alert('Item listed successfully');
+      
+      setReload(true); 
+      setValues(initialState);
+      if (uploadImageRef.current) {
+        uploadImageRef.current.value = '';
+      }
+    } catch (error) {
+      console.error('POST error:', error);
+      alert('Failed to list this item');
+    }
   };
+
   return (
     <div className="Listing">
       <form onSubmit={onSubmit}>
-        <div>
+        <div className="form-container">
           <input
             type="text"
             name="name"
             id="name"
-            placeholder="name"
+            placeholder="Name"
             onChange={onValueChange}
             required
             value={values.name}
@@ -85,7 +83,7 @@ export const Listing = ({ onListingCompleted }: Prop) => {
             type="text"
             name="category"
             id="category"
-            placeholder="category"
+            placeholder="Category"
             onChange={onValueChange}
             value={values.category}
           />
@@ -97,7 +95,7 @@ export const Listing = ({ onListingCompleted }: Prop) => {
             required
             ref={uploadImageRef}
           />
-          <button type="submit">List this item</button>
+          <button type="submit">Add this item</button>
         </div>
       </form>
     </div>
