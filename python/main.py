@@ -21,6 +21,19 @@ def get_db():
     finally:
         conn.close()
 
+def reset_items_table(db):
+    conn = sqlite3.connect(db)
+    cursor = conn.cursor()
+    
+    cursor.execute("DELETE FROM items;")
+
+    cursor.execute("DELETE FROM sqlite_sequence WHERE name='items';")
+    
+    conn.commit()
+    conn.close()
+
+reset_items_table(db)
+
 app = FastAPI()
 
 origins = [os.environ.get("FRONT_URL", "http://localhost:3000")]
